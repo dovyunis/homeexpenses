@@ -98,8 +98,6 @@ export async function syncFromServer() {
   initSchema();
 
   // Round half values
-  db.run("UPDATE dov_expenses SET half = ROUND(half) WHERE half != ROUND(half)");
-  db.run("UPDATE talia_expenses SET half = ROUND(half) WHERE half != ROUND(half)");
 
   const months = (db.exec("SELECT id FROM months")[0]?.values || []);
   for (const [monthId] of months) {
@@ -113,8 +111,6 @@ export async function syncFromServer() {
 
 export async function deleteDb() {
   if (db) {
-    db.run("DELETE FROM talia_expenses");
-    db.run("DELETE FROM dov_expenses");
     db.run("DELETE FROM variable_expenses");
     db.run("DELETE FROM fixed_expenses");
     db.run("DELETE FROM income");
@@ -211,8 +207,6 @@ export async function initDatabase() {
   }
 
   // Fix: round all half values to integers (may have decimals from Excel import)
-  db.run("UPDATE dov_expenses SET half = ROUND(half) WHERE half != ROUND(half)");
-  db.run("UPDATE talia_expenses SET half = ROUND(half) WHERE half != ROUND(half)");
 
   // Recalc all month totals with rounded values
   const months = (db.exec("SELECT id FROM months")[0]?.values || []);
@@ -271,17 +265,6 @@ export function updateCell(table, id, column, value) {
 export function recalcMonthTotals(monthId) {
   if (!db) return;
 
-  // Auto-calc מזונות in fixed_expenses: 1860 + SUM(talia half) - SUM(dov half)
-  const dovHalf = db.exec("SELECT COALESCE(SUM(half),0) FROM dov_expenses WHERE month_id = ?", [monthId])[0].values[0][0];
-  const taliaHalf = db.exec("SELECT COALESCE(SUM(half),0) FROM talia_expenses WHERE month_id = ?", [monthId])[0].values[0][0];
-  const mezonot = Math.round(1860 + taliaHalf - dovHalf);
-
-  // Update the מזונות row in fixed_expenses if it exists
-  const mezonotRow = db.exec("SELECT id FROM fixed_expenses WHERE month_id = ? AND name LIKE '%מזונות%'", [monthId]);
-  if (mezonotRow[0]?.values?.length) {
-    const mezonotId = mezonotRow[0].values[0][0];
-    db.run("UPDATE fixed_expenses SET amount = ? WHERE id = ?", [mezonot, mezonotId]);
-  }
 
   const incomeTotal = db.exec("SELECT COALESCE(SUM(amount),0) FROM income WHERE month_id = ?", [monthId])[0].values[0][0];
   const fixed = db.exec("SELECT COALESCE(SUM(amount),0) FROM fixed_expenses WHERE month_id = ?", [monthId])[0].values[0][0];
@@ -328,8 +311,6 @@ export function deleteMonth(monthId) {
   db.run("DELETE FROM income WHERE month_id = ?", [monthId]);
   db.run("DELETE FROM fixed_expenses WHERE month_id = ?", [monthId]);
   db.run("DELETE FROM variable_expenses WHERE month_id = ?", [monthId]);
-  db.run("DELETE FROM dov_expenses WHERE month_id = ?", [monthId]);
-  db.run("DELETE FROM talia_expenses WHERE month_id = ?", [monthId]);
   db.run("DELETE FROM months WHERE id = ?", [monthId]);
 }
 
@@ -345,8 +326,7 @@ export function duplicateMonth(sourceMonthId, newMonthName) {
     { name: 'income', cols: 'name, amount' },
     { name: 'fixed_expenses', cols: 'name, amount, notes' },
     { name: 'variable_expenses', cols: 'name, amount, notes' },
-    { name: 'dov_expenses', cols: 'name, amount, half, notes' },
-    { name: 'talia_expenses', cols: 'name, amount, half, notes' },
+
   ];
 
   for (const t of tables) {

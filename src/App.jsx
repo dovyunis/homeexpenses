@@ -14,12 +14,6 @@ const FIXED_COLS = [
   { key: 'amount', label: 'סכום', type: 'number' },
   { key: 'notes', label: 'הערות', type: 'text' },
 ];
-const PERSON_COLS = [
-  { key: 'name', label: 'פריט', type: 'text' },
-  { key: 'amount', label: 'סכום קנייה', type: 'number' },
-  { key: 'half', label: 'מחצית', type: 'number' },
-  { key: 'notes', label: 'הערות', type: 'text' },
-];
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -92,8 +86,7 @@ export default function App() {
         totalIncome: pd.totalIncome,
         totalExpenses: pd.totalExpenses,
         remaining: pd.remaining,
-        taliaHalfSum: (pd.taliaExpenses || []).reduce((s, r) => s + (r.half || 0), 0),
-        dovHalfSum: (pd.dovExpenses || []).reduce((s, r) => s + (r.half || 0), 0),
+
       } : null);
     } else {
       setPrevData(null);
@@ -419,27 +412,7 @@ export default function App() {
               }}
             />
 
-            <ExpenseTable
-              title="הוצאות - דב"
-              icon="👤"
-              columns={PERSON_COLS}
-              rows={data.dovExpenses}
-              tableName="dov_expenses"
-              monthId={data.monthId}
-              onCellSave={handleCellSave}
-              onAddRow={handleAddRow}
-              onDeleteRows={(ids) => {
-                ids.forEach((id) => deleteRow('dov_expenses', id));
-                if (data.monthId) recalcMonthTotals(data.monthId);
-                saveDb().then(() => {
-                  loadMonth(activeMonth);
-                  setAllMonths(getAllMonthsSummary());
-                  toast(`${ids.length} שורות נמחקו`, 'success');
-                });
-              }}
-            />
-
-            <ExpenseTable
+<ExpenseTable
               title="הוצאות - טליה"
               icon="�"
               columns={PERSON_COLS}
