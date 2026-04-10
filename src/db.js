@@ -159,24 +159,6 @@ function initSchema() {
     notes TEXT DEFAULT '',
     FOREIGN KEY (month_id) REFERENCES months(id) ON DELETE CASCADE
   )`);
-  db.run(`CREATE TABLE IF NOT EXISTS dov_expenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    month_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    amount REAL DEFAULT 0,
-    half REAL DEFAULT 0,
-    notes TEXT DEFAULT '',
-    FOREIGN KEY (month_id) REFERENCES months(id) ON DELETE CASCADE
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS talia_expenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    month_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    amount REAL DEFAULT 0,
-    half REAL DEFAULT 0,
-    notes TEXT DEFAULT '',
-    FOREIGN KEY (month_id) REFERENCES months(id) ON DELETE CASCADE
-  )`);
 }
 
 // ============================================================
@@ -243,12 +225,8 @@ export function getMonthData(monthName) {
     .map(r => ({ id: r[0], name: r[1], amount: r[2], notes: r[3] }));
   const variableExpenses = mapRows("SELECT id, name, amount, notes FROM variable_expenses WHERE month_id = ? ORDER BY id")
     .map(r => ({ id: r[0], name: r[1], amount: r[2], notes: r[3] }));
-  const dovExpenses = mapRows("SELECT id, name, amount, half, notes FROM dov_expenses WHERE month_id = ? ORDER BY id")
-    .map(r => ({ id: r[0], name: r[1], amount: r[2], half: r[3], notes: r[4] }));
-  const taliaExpenses = mapRows("SELECT id, name, amount, half, notes FROM talia_expenses WHERE month_id = ? ORDER BY id")
-    .map(r => ({ id: r[0], name: r[1], amount: r[2], half: r[3], notes: r[4] }));
 
-  return { monthId, monthName, totalIncome, totalExpenses, remaining, income, fixedExpenses, variableExpenses, dovExpenses, taliaExpenses };
+  return { monthId, monthName, totalIncome, totalExpenses, remaining, income, fixedExpenses, variableExpenses };
 }
 
 export function getAllMonthsSummary() {
@@ -269,7 +247,7 @@ export function recalcMonthTotals(monthId) {
   const incomeTotal = db.exec("SELECT COALESCE(SUM(amount),0) FROM income WHERE month_id = ?", [monthId])[0].values[0][0];
   const fixed = db.exec("SELECT COALESCE(SUM(amount),0) FROM fixed_expenses WHERE month_id = ?", [monthId])[0].values[0][0];
   const variable = db.exec("SELECT COALESCE(SUM(amount),0) FROM variable_expenses WHERE month_id = ?", [monthId])[0].values[0][0];
-  const totalExpenses = fixed + variable + dovHalf + taliaHalf;
+  const totalExpenses = fixed + variable;
   const remaining = incomeTotal - totalExpenses;
   db.run("UPDATE months SET total_income = ?, total_expenses = ?, remaining = ? WHERE id = ?", [incomeTotal, totalExpenses, remaining, monthId]);
 }

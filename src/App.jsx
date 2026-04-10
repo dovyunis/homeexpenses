@@ -168,15 +168,10 @@ export default function App() {
   const handleCellSave = useCallback(async (table, rowId, column, value) => {
     updateCell(table, rowId, column, value);
     if (data?.monthId) {
-      // Auto-calc half for person tables when amount changes
-      if ((table === 'dov_expenses' || table === 'talia_expenses') && column === 'amount') {
-        const halfVal = Math.round(value / 2);
-        updateCell(table, rowId, 'half', halfVal);
-      }
       recalcMonthTotals(data.monthId);
     }
     await saveDb();
-    // Re-fetch data to ensure all computed values (including מזונות) are up to date
+    // Re-fetch data
     const d = getMonthData(activeMonth);
     setData(d);
     setAllMonths(getAllMonthsSummary());
@@ -385,10 +380,6 @@ export default function App() {
               totalExpenses={data.totalExpenses}
               remaining={data.remaining}
               prevData={prevData}
-              mezonot={Math.round(1860 + (data.taliaExpenses || []).reduce((s, r) => s + (r.half || 0), 0) - (data.dovExpenses || []).reduce((s, r) => s + (r.half || 0), 0))}
-              prevMezonot={prevData ? Math.round(1860 + (prevData.taliaHalfSum || 0) - (prevData.dovHalfSum || 0)) : null}
-              dovHalfSum={(data.dovExpenses || []).reduce((s, r) => s + (r.half || 0), 0)}
-              taliaHalfSum={(data.taliaExpenses || []).reduce((s, r) => s + (r.half || 0), 0)}
             />
 
             {/* Tables */}
@@ -412,25 +403,6 @@ export default function App() {
               }}
             />
 
-<ExpenseTable
-              title="הוצאות - טליה"
-              icon="�"
-              columns={PERSON_COLS}
-              rows={data.taliaExpenses}
-              tableName="talia_expenses"
-              monthId={data.monthId}
-              onCellSave={handleCellSave}
-              onAddRow={handleAddRow}
-              onDeleteRows={(ids) => {
-                ids.forEach((id) => deleteRow('talia_expenses', id));
-                if (data.monthId) recalcMonthTotals(data.monthId);
-                saveDb().then(() => {
-                  loadMonth(activeMonth);
-                  setAllMonths(getAllMonthsSummary());
-                  toast(`${ids.length} שורות נמחקו`, 'success');
-                });
-              }}
-            />
 
             <ExpenseTable
               title="הוצאות קבועות"
