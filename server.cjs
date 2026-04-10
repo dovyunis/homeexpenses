@@ -6,17 +6,44 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3001;
 const DIST = path.join(__dirname, 'dist');
 const DATA_DIR = path.join(__dirname, 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-function loadUsers() {
-  try { if (fs.existsSync(USERS_FILE)) return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch(e) {}
-  return {};
+// ============================================================
+//  User management — env var (survives deploys) + in-memory for new registrations
+// ============================================================
+// USERS_JSON env var format: {"username":{"hash":"sha256hex","created":timestamp}, ...}
+let users = {};
+try {
+  if (process.env.USERS_JSON) {
+    users = JSON.parse(process.env.USERS_JSON);
+    console.log(`[AUTH] Loaded ${Object.keys(users).length} users from USERS_JSON env var`);
+  }
+} catch (e) {
+  console.error('[AUTH] Failed to parse USERS_JSON:', e.message);
 }
-function saveUsers(users) { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); }
+
+// Also try local file as fallback (for local dev)
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+try {
+  if (fs.existsSync(USERS_FILE)) {
+    const fileUsers = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    // Merge: env var takes precedence, but add any file-only users
+    for (const [k, v] of Object.entries(fileUsers)) {
+      if (!users[k]) users[k] = v;
+    }
+    console.log(`[AUTH] Merged users from file. Total: ${Object.keys(users).length}`);
+  }
+} catch (e) {}
+
+function saveUsersToFile() {
+  try { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); } catch(e) {}
+}
 function hashPassword(p) { return crypto.createHash('sha256').update(p).digest('hex'); }
 
+// ============================================================
+//  Sessions
+// ============================================================
 const sessions = {};
 const SESSION_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -43,7 +70,9 @@ function getSessionFromReq(req) {
 }
 
 function userDbPath(username) {
-  return path.join(DATA_DIR, username + '.db');
+  // Sanitize username to prevent path traversal
+  const safe = username.replace(/[^a-zA-Z0-9_]/g, '');
+  return path.join(DATA_DIR, safe + '.db');
 }
 
 const MIME = {
@@ -74,20 +103,22 @@ const server = http.createServer((req, res) => {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ ok: false, error: 'Username: letters, numbers, underscore only' }));
         }
-        const users = loadUsers();
         if (users[username]) {
           res.writeHead(409, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ ok: false, error: 'Username already taken' }));
         }
         users[username] = { hash: hashPassword(password), created: Date.now() };
-        saveUsers(users);
+        saveUsersToFile();
         const token = createSession(username);
         res.writeHead(200, {
           'Content-Type': 'application/json',
           'Set-Cookie': `session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_EXPIRY / 1000}`,
         });
         res.end(JSON.stringify({ ok: true, username }));
+        // Log the USERS_JSON value so admin can update env var
         console.log(`[AUTH] New user registered: ${username}`);
+        console.log(`[AUTH] Current USERS_JSON (update env var to persist):`);
+        console.log(JSON.stringify(users));
       } catch (e) {
         res.writeHead(400);
         res.end('Bad request');
@@ -103,7 +134,6 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       try {
         const { username, password } = JSON.parse(Buffer.concat(chunks).toString());
-        const users = loadUsers();
         if (users[username] && users[username].hash === hashPassword(password)) {
           const token = createSession(username);
           res.writeHead(200, {
