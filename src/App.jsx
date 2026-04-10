@@ -41,23 +41,33 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  /* Init database */
+  /* Init database - fetch user first, then init per-user DB */
   useEffect(() => {
-    // Fetch current user
-    fetch('/api/me').then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setCurrentUser(d.username); })
-      .catch(() => {});
+    async function init() {
+      try {
+        // Get current user first
+        let username = null;
+        try {
+          const res = await fetch('/api/me');
+          if (res.ok) {
+            const d = await res.json();
+            username = d.username;
+            setCurrentUser(username);
+          }
+        } catch (e) {}
 
-    initDatabase().then(() => {
-      if (hasData()) {
-        refreshMonths();
+        // Init database scoped to this user
+        await initDatabase(username);
+        if (hasData()) {
+          refreshMonths();
+        }
+      } catch (err) {
+        console.error(err);
+        toast('שגיאה בטעינת מסד הנתונים', 'error');
       }
       setLoading(false);
-    }).catch((err) => {
-      console.error(err);
-      toast('שגיאה בטעינת מסד הנתונים', 'error');
-      setLoading(false);
-    });
+    }
+    init();
   }, []);
 
   const refreshMonths = useCallback(() => {

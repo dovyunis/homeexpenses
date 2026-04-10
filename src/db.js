@@ -1,7 +1,8 @@
 import initSqlJs from 'sql.js';
 
-const DB_NAME = 'homeExpensesDB';
+let DB_NAME = 'homeExpensesDB';
 const DB_STORE = 'sqliteDb';
+let currentUsername = null;
 
 let db = null;
 
@@ -164,40 +165,45 @@ function initSchema() {
 // ============================================================
 //  Init
 // ============================================================
-export async function initDatabase() {
+export async function initDatabase(username) {
+  // Scope IndexedDB per user so different users don't see each other's data
+  if (username) {
+    currentUsername = username;
+    DB_NAME = 'homeExpenses_' + username;
+  }
+
   const SQL = await initSqlJs({
     locateFile: () => '/sql-wasm.wasm',
   });
-  let saved = await loadDb();
 
-  // If no local data, try to fetch shared DB from server
-  if (!saved) {
-    saved = await loadSharedDb();
-  }
+  // Try server first (authoritative per-user DB)
+  let serverData = await loadSharedDb();
 
-  db = saved ? new SQL.Database(saved) : new SQL.Database();
-  initSchema();
-
-  // If local DB exists but is empty (no months), try server
-  const monthCount = db.exec("SELECT COUNT(*) FROM months")[0]?.values[0][0] || 0;
-  if (monthCount === 0) {
-    const serverData = await loadSharedDb();
-    if (serverData && serverData.byteLength > 0) {
-      db = new SQL.Database(serverData);
+  if (serverData && serverData.byteLength > 0) {
+    // Server has data for this user — use it
+    db = new SQL.Database(serverData);
+    initSchema();
+  } else {
+    // No server data — try local IndexedDB
+    let saved = await loadDb();
+    if (saved) {
+      db = new SQL.Database(saved);
+      initSchema();
+    } else {
+      // Brand new user — empty DB
+      db = new SQL.Database();
       initSchema();
     }
   }
 
-  // Fix: round all half values to integers (may have decimals from Excel import)
-
-  // Recalc all month totals with rounded values
+  // Recalc all month totals
   const months = (db.exec("SELECT id FROM months")[0]?.values || []);
   for (const [monthId] of months) {
     recalcMonthTotals(monthId);
   }
 
-  // Save locally only on init (don't push to server — that overwrites other devices' changes)
-  if (saved) await saveDbLocal();
+  // Save locally
+  await saveDbLocal();
   return db;
 }
 
