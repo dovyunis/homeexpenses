@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { initDatabase, getMonths, getMonthData, getAllMonthsSummary, updateCell, recalcMonthTotals, saveDb, deleteDb, hasData, insertRow, deleteRow, addMonth, deleteMonth, duplicateMonth, syncFromServer } from './db';
 import { importExcelToDb, exportToExcel } from './excel';
 import Sidebar from './components/Sidebar';
-import UploadArea from './components/UploadArea';
 import SummaryCards from './components/SummaryCards';
 import ExpenseTable from './components/ExpenseTable';
 import { MonthlyComparisonChart } from './components/Charts';
@@ -309,7 +308,7 @@ export default function App() {
         </div>
       )}
 
-      {showDashboard && (
+      {!loading && (
         <Sidebar
           months={months}
           activeMonth={activeMonth}
@@ -329,14 +328,30 @@ export default function App() {
         onTouchEnd={handleTouchEnd}
       >
         {!showDashboard ? (
-          <>
-            <UploadArea onFile={handleFile} />
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
-              <button className="action-btn primary" onClick={handleSync} style={{ fontSize: '16px', padding: '12px 32px' }}>
-                🔄 סנכרון מהשרת
+          <div className="welcome-screen">
+            <div className="welcome-content">
+              <div className="welcome-icon">🏠</div>
+              <h1>Welcome to HomeExpenses</h1>
+              <p>Start managing your monthly expenses</p>
+              <div className="welcome-steps">
+                <div className="welcome-step">
+                  <span className="step-number">1</span>
+                  <span>Open the sidebar menu</span>
+                </div>
+                <div className="welcome-step">
+                  <span className="step-number">2</span>
+                  <span>Press ➕ to add a new month</span>
+                </div>
+                <div className="welcome-step">
+                  <span className="step-number">3</span>
+                  <span>Start tracking your expenses</span>
+                </div>
+              </div>
+              <button className="welcome-btn" onClick={() => setSidebarOpen(true)}>
+                📋 Open Sidebar
               </button>
             </div>
-          </>
+          </div>
         ) : (
           <div
             className={`swipe-container ${slideClass}`}
