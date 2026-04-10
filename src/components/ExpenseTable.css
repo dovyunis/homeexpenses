@@ -1,0 +1,226 @@
+.table-section {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.table-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+  width: 180px;
+  transition: border-color 0.2s;
+}
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-icon:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-icon.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.expense-table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.expense-table th {
+  background: var(--table-stripe);
+  padding: 10px 16px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.expense-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.expense-table tr:nth-child(even) td {
+  background: var(--table-stripe);
+}
+.expense-table tr:hover td {
+  background: var(--table-hover);
+}
+
+.expense-table .row-select {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.editable-cell {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  display: inline-block;
+  min-width: 50px;
+}
+.editable-cell:hover {
+  background: var(--accent-bg);
+}
+
+.editable-input {
+  padding: 5px 10px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+  width: 100%;
+  max-width: 180px;
+  outline: none;
+}
+
+.table-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Sum footer row */
+.table-sum-row {
+  background: var(--table-stripe);
+  border-top: 2px solid var(--accent);
+}
+.table-sum-row td {
+  padding: 12px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+.sum-label {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.sum-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .table-section {
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .search-input {
+    width: 100%;
+  }
+  .table-actions {
+    justify-content: space-between;
+  }
+  .expense-table th {
+    padding: 8px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .expense-table td {
+    padding: 8px 8px;
+    font-size: 12px;
+  }
+  .editable-cell {
+    min-width: 36px;
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+  .editable-input {
+    font-size: 12px;
+    padding: 4px 6px;
+    max-width: 120px;
+  }
+  .table-sum-row td {
+    padding: 8px 8px;
+    font-size: 12px;
+  }
+  .sum-label {
+    font-size: 11px;
+  }
+  .btn-icon {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}

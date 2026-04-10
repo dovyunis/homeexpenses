@@ -1,0 +1,120 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Light theme */
+  --bg: #f0f2f5;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --hover-bg: #f3f4f6;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-bg: rgba(99, 102, 241, 0.08);
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.08);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.08);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.08);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --input-bg: #f9fafb;
+  --table-stripe: #f9fafb;
+  --table-hover: #f3f4f6;
+  --scrollbar-bg: #f0f0f0;
+  --scrollbar-thumb: #c1c1c1;
+}
+
+[data-theme='dark'] {
+  --bg: #0f1117;
+  --sidebar-bg: #1a1b26;
+  --card-bg: #1e1f2e;
+  --text: #e4e5f1;
+  --text-muted: #9ca3af;
+  --border: #2d2f3e;
+  --hover-bg: #262838;
+  --accent: #818cf8;
+  --accent-light: #a5b4fc;
+  --accent-bg: rgba(129, 140, 248, 0.12);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.12);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.3);
+  --input-bg: #262838;
+  --table-stripe: #1a1b2a;
+  --table-hover: #262838;
+  --scrollbar-bg: #1a1b26;
+  --scrollbar-thumb: #3d3f50;
+}
+
+html {
+  direction: rtl;
+  font-family: 'Segoe UI', 'Rubik', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+  html {
+    font-size: 13px;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, .action-btn, .btn-icon, .sidebar-month, .theme-toggle {
+    min-height: 40px;
+  }
+  input, select {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+}
